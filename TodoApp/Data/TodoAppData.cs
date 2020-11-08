@@ -14,6 +14,8 @@ namespace TodoApp.Data
         public static void Init(IMongoDatabase database)
         {
             InitCollection<UserCollection>(database);
+            InitCollection<TableCollection>(database);
+            InitCollection<CardListCollection>(database);
         }
 
         private static void InitCollection<T>(IMongoDatabase database)

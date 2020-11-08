@@ -62,6 +62,12 @@ namespace TodoApp.Data.Mongo
             return collection.DeleteOne(Builders<T>.Filter.Eq(x => x.ID, data.ID)).DeletedCount > 0;
         }
 
+        public static bool DeleteOneById(ObjectId id)
+        {
+            // TODO: Return count?
+            return collection.DeleteOne(Builders<T>.Filter.Eq(x => x.ID, id)).DeletedCount > 0;
+        }
+
         public static T FindOneById(ObjectId id)
         {
             if (id == ObjectId.Empty)

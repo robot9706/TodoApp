@@ -22,22 +22,21 @@ namespace TodoApp.Controllers
     }
 
     [ApiController]
-    [Route("login")]
     public class LoginController : ControllerBase
     {
-        private SignInManager<User> _signInManager;
-        private UserManager<User> _userMgr;
-        private RoleManager<AppRole> _roleMgr;
+        private SignInManager<User> signInManager;
+        private UserManager<User> userMgr;
+        private RoleManager<AppRole> roleMgr;
 
         public LoginController(SignInManager<User> signin, UserManager<User> usermanager, RoleManager<AppRole> r)
         {
-            _signInManager = signin;
-            _userMgr = usermanager;
-            _roleMgr = r;
+            signInManager = signin;
+            userMgr = usermanager;
+            roleMgr = r;
         }
 
         [AllowAnonymous]
-        [HttpPost()]
+        [HttpPost("/user/login")]
         public async Task<StatusCodeResult> Login([FromBody] LoginData data)
         {
             User dbUser = UserCollection.FindByUsername(data.Name);
@@ -46,7 +45,7 @@ namespace TodoApp.Controllers
                 return NotFound();
             }
 
-            Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(dbUser, data.Password, false, true);
+            Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(dbUser, data.Password, false, true);
 
             if (result.Succeeded)
             {
@@ -56,16 +55,16 @@ namespace TodoApp.Controllers
             return Unauthorized();
         }
 
-        [HttpGet("logout")]
+        [HttpGet("/user/logout")]
         public async Task<StatusCodeResult> Logout()
         {
-            User user = await _userMgr.GetUserAsync(HttpContext.User);
+            User user = await userMgr.GetUserAsync(HttpContext.User);
             if (user == null)
             {
                 return Unauthorized();
             }
 
-            await _signInManager.SignOutAsync();
+            await signInManager.SignOutAsync();
 
             return Ok();
         }
