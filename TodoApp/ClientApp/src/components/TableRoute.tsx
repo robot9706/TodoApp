@@ -3,13 +3,14 @@ import { connect } from "react-redux";
 
 import styled, { ThemeConsumer } from "styled-components";
 import { TextField, Paper, Typography, Button, CircularProgress, Fab, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, IconButton } from '@material-ui/core';
-import { apiCreateList, apiGetTableContent, Card, CardList, CreateList, apiCreateCard, apiDeleteCard, apiEditCard } from '../api';
+import { apiCreateList, apiGetTableContent, Card, CardList, CreateList, apiCreateCard, apiDeleteCard, apiEditCard, apiDeleteList, apiEditList, apiMoveCard } from '../api';
 import AddIcon from '@material-ui/icons/Add';
 import { history } from '../App';
 import { withRouter } from 'react-router';
 import PromptTextDialog from "./PromptTextDialog";
 import CardEditDialog from './CardEditDialog';
 import CardListComponent from './CardListComponent';
+import { hashCode } from '..';
 
 const mapStateToProps = (store: any) => {
     return {
@@ -69,6 +70,11 @@ class TableRoute extends React.Component<ActualProps, State> {
     editCardIndex?: number;
     editCardResolve?: Function;
 
+    dragFrom: {
+        list: string;
+        card: number;
+    } = { list: "", card: -1 };
+
     constructor(props: any) {
         super(props);
 
@@ -110,7 +116,7 @@ class TableRoute extends React.Component<ActualProps, State> {
     }
 
     handleFab() {
-        this.createListDialogRef.doOpen();
+        this.createListDialogRef.doOpen(null);
     }
 
     onCreateList(name: string) {
@@ -159,6 +165,11 @@ class TableRoute extends React.Component<ActualProps, State> {
         }
     }
 
+    getListKey(list: CardList) {
+        const contentHash = list.content.map((x, index) => "" + hashCode(("" + x.title + index + x.description))).reduce((ac, current) => ac + current, "");
+        return list.id + list.content.length + contentHash;
+    }
+
     render() {
         if (this.state.loading) {
             return <FullPageCenter>
@@ -170,7 +181,7 @@ class TableRoute extends React.Component<ActualProps, State> {
             <ListsWrapper>
                 {
                     this.state.lists.map((list: CardList, index: number) => {
-                        return <CardListComponent key={index} list={list} onCreateCard={((listId: string) => {
+                        return <CardListComponent key={index+this.getListKey(list)} list={list} onCreateCard={((listId: string) => {
                             return new Promise((resolve, reject) => {
                                 this.handleCreateCard(listId);
                                 this.editCardResolve = resolve;
@@ -188,6 +199,37 @@ class TableRoute extends React.Component<ActualProps, State> {
                                 this.handleEditCard(listId, index, card);
                                 this.editCardResolve = resolve;
                             });
+                        }).bind(this)}
+                        onDeleteList={((listId: string) => {
+                            apiDeleteList(this.getTableId(), listId).then(result => {
+                                if (result.ok) {
+                                    this.setState({
+                                        lists: [ ...this.state.lists.filter(x => x.id != listId) ]
+                                    });
+                                }
+                            })
+                        }).bind(this)} 
+                        onDragStart={((listId: string, cardIndex: number) => {
+                            this.dragFrom = {
+                                list: listId,
+                                card: cardIndex
+                            };
+                        }).bind(this)}
+                        onDragDrop={((listId: string, targetIndex: number) => {
+                            if (this.dragFrom.list == "" || this.dragFrom.card < 0) {
+                                return;
+                            }
+
+                            apiMoveCard(this.getTableId(), this.dragFrom.list, listId, this.dragFrom.card, targetIndex).then((result: any) => {
+                                if (!result.ok) {
+                                    history.push("/");
+                                    return;
+                                }
+
+                                this.setState({
+                                    lists: result.data
+                                });
+                            })
                         }).bind(this)} />;
                     })
                 }

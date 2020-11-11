@@ -52,5 +52,13 @@ namespace TodoApp.Data.Collections
 
             return (result.IsAcknowledged && result.MatchedCount == 1);
         }
+
+        public static bool UpdateName(CardList list)
+        {
+            UpdateResult result = collection.UpdateOne(Builders<CardList>.Filter.And(Builders<CardList>.Filter.Eq(x => x.ID, list.ID), Builders<CardList>.Filter.Eq(x => x.Table, list.Table)),
+                Builders<CardList>.Update.Set(x => x.Name, list.Name));
+
+            return (result.IsAcknowledged && result.MatchedCount == 1);
+        }
     }
 }

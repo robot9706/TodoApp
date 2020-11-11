@@ -106,3 +106,15 @@ export const apiDeleteCard = (tableId: string, listId: string, index: number): P
 export const apiEditCard = (tableId: string, listId: string, index: number, card: Card): Promise<any> => {
     return apiPost(`/table/${tableId}/${listId}/${index}/edit`, card).then(dataHandler).catch(errorHandler);
 }
+
+export const apiDeleteList = (tableId: string, listId: string): Promise<any> => {
+    return apiGet(`/table/${tableId}/${listId}/delete`).then(successHandler).catch(errorHandler);
+}
+
+export const apiEditList = (tableId: string, listId: string, list: CreateList) => {
+    return apiPost(`/table/${tableId}/${listId}/edit`, list).then(dataHandler).catch(errorHandler);
+}
+
+export const apiMoveCard = (tableId: string, fromList: string, toList: string, fromCardIndex: number, newCardIndex: number) => {
+    return apiGet(`/table/${tableId}/${fromList}/move?toList=${toList}&cardIndex=${fromCardIndex}&newCardIndex=${newCardIndex}`).then(dataHandler).catch(errorHandler);
+}

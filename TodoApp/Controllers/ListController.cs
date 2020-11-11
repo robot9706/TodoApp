@@ -152,33 +152,53 @@ namespace TodoApp.Controllers
                 return BadRequest();
             }
 
-            CardList fromList = CardListCollection.FindListByTableAndId(table, new ObjectId(listID));
-            if (fromList == null || fromList.Content.Count <= cardIndex)
+            if (listID == toListID)
             {
-                return BadRequest();
+                CardList list = CardListCollection.FindListByTableAndId(table, new ObjectId(listID));
+                if (list == null || list.Content.Count <= cardIndex)
+                {
+                    return BadRequest();
+                }
+
+                Card card = list.Content[cardIndex];
+                list.Content.RemoveAt(cardIndex);
+                list.Content.Insert(newCardIndex, card);
+
+                if (!CardListCollection.UpdateContent(list))
+                {
+                    return BadRequest();
+                }
+            }
+            else
+            {
+                CardList fromList = CardListCollection.FindListByTableAndId(table, new ObjectId(listID));
+                if (fromList == null || fromList.Content.Count <= cardIndex)
+                {
+                    return BadRequest();
+                }
+
+                CardList toList = CardListCollection.FindListByTableAndId(table, new ObjectId(toListID));
+                if (toList == null)
+                {
+                    return BadRequest();
+                }
+
+                Card card = fromList.Content[cardIndex];
+                fromList.Content.RemoveAt(cardIndex);
+
+                toList.Content.Insert(newCardIndex, card);
+
+                if (!CardListCollection.UpdateContent(fromList))
+                {
+                    return BadRequest();
+                }
+                if (!CardListCollection.UpdateContent(toList))
+                {
+                    return BadRequest();
+                }
             }
 
-            CardList toList = CardListCollection.FindListByTableAndId(table, new ObjectId(toListID));
-            if (toList == null)
-            {
-                return BadRequest();
-            }
-
-            Card card = fromList.Content[cardIndex];
-            fromList.Content.RemoveAt(cardIndex);
-
-            toList.Content.Insert(newCardIndex, card);
-
-            if (!CardListCollection.UpdateContent(fromList))
-            {
-                return BadRequest();
-            }
-            if (!CardListCollection.UpdateContent(toList))
-            {
-                return BadRequest();
-            }
-
-            return Ok();
+            return Ok(CardListCollection.FindAllInTable(new ObjectId(tableID)));
         }
     }
 }
