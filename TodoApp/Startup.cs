@@ -1,13 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using TodoApp.Data;
@@ -70,12 +74,6 @@ namespace TodoApp
             {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
             });
-
-            // Static web files
-            services.AddSpaStaticFiles(configuration =>
-            {
-                configuration.RootPath = "ClientApp/build";
-            });
         }
 
         public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
@@ -93,11 +91,22 @@ namespace TodoApp
                 app.UseExceptionHandler("/Error");
             }
 
-            // Setup HTTP stack
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
-            app.UseSpaStaticFiles();
+            app.UseHttpsRedirection();
+            PhysicalFileProvider fileProvider = new PhysicalFileProvider(Path.Join(env.ContentRootPath, "ClientApp", "build"));
+            app.UseDefaultFiles(new DefaultFilesOptions()
+            {
+                DefaultFileNames = new List<string>()
+                {
+                    "index.html"
+                },
+                FileProvider = fileProvider
+            });
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = fileProvider
+            });
 
+            // Setup HTTP stack
             app.UseCookiePolicy();
             app.UseCors("CorsPolicy");
 
@@ -108,11 +117,6 @@ namespace TodoApp
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
-            });
-
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "ClientApp";
             });
         }
 
