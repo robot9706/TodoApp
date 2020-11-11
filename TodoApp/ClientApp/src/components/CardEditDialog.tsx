@@ -71,7 +71,7 @@ export default class CardEditDialog extends React.Component<DialogProps & any, D
             </DialogContent>
             <DialogActions>
                 <Button onClick={this.handleClose.bind(this)} color="primary">Mégse</Button>
-                <Button onClick={this.handleDone.bind(this)} color="primary">{ this.state.isNew ? "Új" : "Mentés" }</Button>
+                <Button onClick={this.handleDone.bind(this)} color="primary" disabled={this.state.title.length == 0}>{ this.state.isNew ? "Új" : "Mentés" }</Button>
             </DialogActions>
         </Dialog>;
     }

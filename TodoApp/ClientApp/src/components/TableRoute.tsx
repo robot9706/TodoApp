@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 
 import styled, { ThemeConsumer } from "styled-components";
 import { TextField, Paper, Typography, Button, CircularProgress, Fab, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, IconButton } from '@material-ui/core';
-import { apiCreateList, apiGetTableContent, Card, CardList, CreateList, apiCreateCard } from '../api';
+import { apiCreateList, apiGetTableContent, Card, CardList, CreateList, apiCreateCard, apiDeleteCard, apiEditCard } from '../api';
 import AddIcon from '@material-ui/icons/Add';
 import { history } from '../App';
 import { withRouter } from 'react-router';
@@ -35,7 +35,6 @@ const ListsWrapper = styled.div`{
     height: 100%;
     display: flex;
     flex-flow: row;
-    background-color: ##007FDB;
 }`;
 
 const ListEntryWrapper = styled.div`{
@@ -136,17 +135,27 @@ class TableRoute extends React.Component<ActualProps, State> {
         this.editCardDialogRef.doOpen(null);
     }
 
+    handleEditCard(listId: string, index: number, card: Card) {
+        this.editCardIndex = index;
+        this.editSelectedList = listId;
+        this.editCardDialogRef.doOpen(card);
+    }
+
     onCardEditDone(card: Card) {
-        if (this.editCardIndex == undefined) {
-            apiCreateCard(this.getTableId(), this.editSelectedList, card).then(result => {
-                if (result.ok) {
-                    if (this.editCardResolve != undefined) {
-                        this.editCardResolve(result.data.content);
-                    }
-                } else {
-                    history.push("/");
+        const thenFunc = ((result: any) => {
+            if (result.ok) {
+                if (this.editCardResolve != undefined) {
+                    this.editCardResolve(result.data.content);
                 }
-            })
+            } else {
+                history.push("/");
+            }
+        });
+
+        if (this.editCardIndex == undefined) {
+            apiCreateCard(this.getTableId(), this.editSelectedList, card).then(thenFunc);
+        } else {
+            apiEditCard(this.getTableId(), this.editSelectedList, this.editCardIndex, card).then(thenFunc);
         }
     }
 
@@ -164,6 +173,19 @@ class TableRoute extends React.Component<ActualProps, State> {
                         return <CardListComponent key={index} list={list} onCreateCard={((listId: string) => {
                             return new Promise((resolve, reject) => {
                                 this.handleCreateCard(listId);
+                                this.editCardResolve = resolve;
+                            });
+                        }).bind(this)}
+                        onDeleteCard={((listId: string, index: number) => {
+                            return new Promise((resolve, reject) => {
+                                apiDeleteCard(this.getTableId(), listId, index).then(result => {
+                                    resolve(result.data.content);
+                                });
+                            }); 
+                        }).bind(this)}
+                        onEditCard={((listId: string, index: number, card: Card) => {
+                            return new Promise((resolve, reject) => {
+                                this.handleEditCard(listId, index, card);
                                 this.editCardResolve = resolve;
                             });
                         }).bind(this)} />;

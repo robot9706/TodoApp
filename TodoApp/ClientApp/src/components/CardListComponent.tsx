@@ -37,6 +37,8 @@ interface Props {
     list: CardList;
 
     onCreateCard: Function;
+    onDeleteCard: Function;
+    onEditCard: Function;
 }
 
 interface State {
@@ -54,14 +56,24 @@ export default class CardListComponent extends React.Component<Props, State> {
         };
     }
 
+    handleNewContent(newContent: Card[]) {
+        const list = this.state.list;
+        list.content = newContent;
+        this.setState({
+            list: list
+        });
+    }
+
     handleCreateCard() {
-        this.props.onCreateCard(this.state.list.id).then((newContent: Card[]) => {
-            const list = this.state.list;
-            list.content = newContent;
-            this.setState({
-                list: list
-            });
-        })
+        this.props.onCreateCard(this.state.list.id).then(this.handleNewContent.bind(this));
+    }
+
+    handleDeleteCard(index: number) {
+        this.props.onDeleteCard(this.state.list.id, index).then(this.handleNewContent.bind(this));
+    }
+
+    handleEditCard(index: number, card: Card) {
+        this.props.onEditCard(this.state.list.id, index, card).then(this.handleNewContent.bind(this));
     }
 
     render() {
@@ -87,11 +99,11 @@ export default class CardListComponent extends React.Component<Props, State> {
                                     <Typography variant="h5" component="h2">{card.title}</Typography>
                                     <Typography color="textSecondary">{card.description}</Typography>
                                 </CardContent>
-                                <ActionsWrapper style={{opacity: (this.state.mouseOver == index ? 1 : 0)}}>
-                                    <IconButton>
+                                <ActionsWrapper style={{ opacity: (this.state.mouseOver == index ? 1 : 0) }}>
+                                    <IconButton onClick={(() => { this.handleEditCard(index, card); }).bind(this)}>
                                         <Edit />
                                     </IconButton>
-                                    <IconButton>
+                                    <IconButton onClick={(() => { this.handleDeleteCard(index); }).bind(this)}>
                                         <Delete />
                                     </IconButton>
                                 </ActionsWrapper>

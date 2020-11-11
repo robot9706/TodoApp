@@ -25,6 +25,7 @@ const PageHeader = styled.div`{
 const Page = styled.div`{
     flex: 1 1 auto;
     overflow-y: scroll;
+    background-color: #007FDB;
 }`;
 
 export default class App extends React.Component {

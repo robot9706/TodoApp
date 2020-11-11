@@ -55,7 +55,7 @@ export default class PromptTextDialog extends React.Component<DialogProps, Dialo
             </DialogContent>
             <DialogActions>
                 <Button onClick={this.handleClose.bind(this)} color="primary">Mégse</Button>
-                <Button onClick={this.handleDone.bind(this)} color="primary">Létrehozás</Button>
+                <Button onClick={this.handleDone.bind(this)} color="primary" disabled={this.state.name.length == 0}>Létrehozás</Button>
             </DialogActions>
         </Dialog>;
     }

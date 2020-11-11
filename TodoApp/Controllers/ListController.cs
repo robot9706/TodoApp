@@ -116,7 +116,30 @@ namespace TodoApp.Controllers
                 return BadRequest();
             }
 
-            return Ok();
+            return Ok(CardListCollection.FindOneList(new ObjectId(tableID), new ObjectId(listID)));
+        }
+
+        [HttpPost("/table/{tableID}/{listID}/{cardIndex}/edit")]
+        public async Task<IActionResult> CreateCard([FromRoute] string tableID, [FromRoute] string listID, [FromRoute] int cardIndex, [FromBody] CreateCardData data)
+        {
+            if (string.IsNullOrEmpty(data.Title))
+            {
+                return BadRequest();
+            }
+
+            CardList list = CardListCollection.FindListByTableAndId(new ObjectId(tableID), new ObjectId(listID));
+            list.Content[cardIndex] = new Card()
+            {
+                Title = data.Title,
+                Description = data.Description
+            };
+
+            if (!CardListCollection.UpdateContent(list))
+            {
+                return BadRequest();
+            }
+
+            return Ok(list);
         }
 
         [HttpGet("/table/{tableID}/{listID}/move")] //?toList=&cardIndex=&newCardIndex=

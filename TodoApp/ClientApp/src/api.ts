@@ -98,3 +98,11 @@ export const apiCreateList = (tableId: string, data: CreateList): Promise<any> =
 export const apiCreateCard = (tableId: string, listId: string, card: Card): Promise<any> => {
     return apiPost(`/table/${tableId}/${listId}/create`, card).then(dataHandler).catch(errorHandler);
 }
+
+export const apiDeleteCard = (tableId: string, listId: string, index: number): Promise<any> => {
+    return apiGet(`/table/${tableId}/${listId}/${index}/delete`).then(dataHandler).catch(errorHandler);
+}
+
+export const apiEditCard = (tableId: string, listId: string, index: number, card: Card): Promise<any> => {
+    return apiPost(`/table/${tableId}/${listId}/${index}/edit`, card).then(dataHandler).catch(errorHandler);
+}
