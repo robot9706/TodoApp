@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,9 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using System;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using TodoApp.Data;
 using TodoApp.Data.Collections;
@@ -32,11 +31,16 @@ namespace TodoApp
         public void ConfigureServices(IServiceCollection services)
         {
             // Create mongo connection
-            MongoClient client = new MongoClient("mongodb://127.0.0.1:27017");
-            database = client.GetDatabase("TodoApp");
+            MongoClientSettings settings = MongoClientSettings.FromUrl(
+              new MongoUrl(Configuration["Database:URL"])
+            );
+            settings.SslSettings = new SslSettings() { EnabledSslProtocols = SslProtocols.Tls12 };
+            MongoClient client = new MongoClient(settings);
+            database = client.GetDatabase(Configuration["Database:Database"]);
             TodoAppData.Init(database);
 
             // Cors
+#if DEBUG
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy", builder => builder
@@ -46,6 +50,7 @@ namespace TodoApp
                         .AllowCredentials()
                     );
             });
+#endif
 
             // Setup services
             services.AddControllers(); // Controllers
@@ -61,21 +66,6 @@ namespace TodoApp
                 options.Password.RequiredLength = 1;
             });
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-               .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts =>
-               {
-                   opts.RequireHttpsMetadata = false;
-                   opts.SaveToken = true;
-                   opts.TokenValidationParameters = new TokenValidationParameters()
-                   {
-                       ValidateIssuer = true,
-                       ValidIssuer = "MEIRL",
-                       ValidateAudience = true,
-                       ValidAudience = "LOL",
-                       ValidateIssuerSigningKey = false
-                   };
-                   opts.Audience = "LOL";
-               });
             services.AddAuthorization(options =>
             {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
@@ -104,6 +94,7 @@ namespace TodoApp
             }
 
             // Setup HTTP stack
+            app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
