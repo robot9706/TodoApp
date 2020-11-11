@@ -81,7 +81,8 @@ namespace TodoApp.Controllers
             {
                 return BadRequest();
             }
-            return Ok();
+
+            return Ok(CardListCollection.FindOneList(new ObjectId(tableID), new ObjectId(listID)));
         }
 
         [HttpGet("/table/{tableID}/{listID}/delete")]

@@ -100,11 +100,8 @@ namespace TodoApp.Controllers
             {
                 return BadRequest();
             }
-            
-            if (!CardListCollection.DeleteByTable(table))
-            {
-                return BadRequest();
-            }
+
+            CardListCollection.DeleteByTable(table);
 
             return Ok();
         }

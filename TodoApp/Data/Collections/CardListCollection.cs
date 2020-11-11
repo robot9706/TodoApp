@@ -17,6 +17,11 @@ namespace TodoApp.Data.Collections
             return collection.Find(Builders<CardList>.Filter.Eq(x => x.Table, table)).ToList();
         }
 
+        public static CardList FindOneList(ObjectId table, ObjectId list)
+        {
+            return collection.Find(Builders<CardList>.Filter.And(Builders<CardList>.Filter.Eq(x => x.Table, table), Builders<CardList>.Filter.Eq(x => x.ID, list))).FirstOrDefault();
+        }
+
         public static bool AddCardToTable(ObjectId table, ObjectId list, Card card)
         {
             UpdateResult result = collection.UpdateOne(Builders<CardList>.Filter.And(Builders<CardList>.Filter.Eq(x => x.ID, list), Builders<CardList>.Filter.Eq(x => x.Table, table)),

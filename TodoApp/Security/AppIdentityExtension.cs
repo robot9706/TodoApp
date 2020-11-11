@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Threading.Tasks;
 using TodoApp.Data.Model;
 
 namespace TodoApp.Security
@@ -19,6 +21,15 @@ namespace TodoApp.Security
 
 			services.AddSingleton<IRoleStore<AppRole>>(x => new AppRoleStore());
 			services.AddSingleton<IUserStore<User>>(x => new AppUserStore());
+
+			services.ConfigureApplicationCookie(options =>
+			{
+				options.Events.OnRedirectToLogin = context =>
+				{
+					context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+					return Task.CompletedTask;
+				};
+			});
 
 			return builder;
 		}

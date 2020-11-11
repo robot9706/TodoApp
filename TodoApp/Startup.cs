@@ -36,6 +36,17 @@ namespace TodoApp
             database = client.GetDatabase("TodoApp");
             TodoAppData.Init(database);
 
+            // Cors
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy", builder => builder
+                        .WithOrigins("http://localhost:3000")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                    );
+            });
+
             // Setup services
             services.AddControllers(); // Controllers
 
@@ -70,7 +81,8 @@ namespace TodoApp
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
             });
 
-            services.AddSpaStaticFiles(configuration => // Static web files
+            // Static web files
+            services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/build";
             });
@@ -95,8 +107,8 @@ namespace TodoApp
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
-            app.UseStatusCodePages();
-            app.UseHttpsRedirection();
+            app.UseCookiePolicy();
+            app.UseCors("CorsPolicy");
 
             app.UseAuthentication();
             app.UseRouting();

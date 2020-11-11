@@ -14,8 +14,29 @@ namespace TodoApp.Controllers
 {
     public class LoginData
     {
-        [JsonPropertyName("name")]
+        [JsonPropertyName("username")]
         public string Name { get; set; }
+
+        [JsonPropertyName("password")]
+        public string Password { get; set; }
+    }
+
+    public class LoginResult
+    {
+        [JsonPropertyName("username")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("fullname")]
+        public string FullName { get; set; }
+    }
+
+    public class RegisterData
+    {
+        [JsonPropertyName("username")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("fullname")]
+        public string FullName { get; set; }
 
         [JsonPropertyName("password")]
         public string Password { get; set; }
@@ -37,7 +58,7 @@ namespace TodoApp.Controllers
 
         [AllowAnonymous]
         [HttpPost("/user/login")]
-        public async Task<StatusCodeResult> Login([FromBody] LoginData data)
+        public async Task<IActionResult> Login([FromBody] LoginData data)
         {
             User dbUser = UserCollection.FindByUsername(data.Name);
             if (dbUser == null)
@@ -49,10 +70,43 @@ namespace TodoApp.Controllers
 
             if (result.Succeeded)
             {
-                return Ok();
+                return Ok(new LoginResult()
+                {
+                    Name = dbUser.Username,
+                    FullName = dbUser.FullName
+                });
             }
 
             return Unauthorized();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("/user/register")]
+        public async Task<IActionResult> Register([FromBody] RegisterData data)
+        {
+            User dbUser = UserCollection.FindByUsername(data.Name);
+            if (dbUser != null)
+            {
+                return Forbid();
+            }
+
+            User newUser = new User()
+            {
+                Username = data.Name,
+                FullName = data.FullName,
+                Roles = new string[] { "USER" },
+                PasswordHash = null
+            };
+
+            IdentityResult result = await userMgr.CreateAsync(newUser, data.Password);
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet("/user/logout")]
